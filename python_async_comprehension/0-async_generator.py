@@ -4,6 +4,7 @@ Defines an asynchronous generator that yields ten random
 floating-point numbers between 0 and 10, waiting one second
 between each yield.
 """
+
 import asyncio
 import random
 from typing import AsyncGenerator
