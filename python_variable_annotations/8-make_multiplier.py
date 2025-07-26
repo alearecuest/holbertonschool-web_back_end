@@ -12,4 +12,3 @@ def make_multiplier(multiplier: float) -> Callable[[float], float]:
     def _mult(x: float) -> float:
         return x * multiplier
     return _mult
-
