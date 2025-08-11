@@ -44,7 +44,8 @@ class Server:
         Returns a page of the dataset that is resilient to deletions.
 
         Args:
-            index (int): The start index of the current page. Default None, which becomes 0.
+            index (int): The start index of the current page.
+                         Default None, which becomes 0.
             page_size (int): The size of the page. Default 10.
 
         Returns:
