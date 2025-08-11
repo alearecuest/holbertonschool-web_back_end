@@ -54,7 +54,7 @@ class Server:
         Args:
             page (int): Page number (1-indexed), default is 1
             page_size (int): Number of items per page, default is 10
-            
+
         Returns:
             List[List]: A list of rows representing the requested page
         """
