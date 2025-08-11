@@ -78,7 +78,7 @@ class Server:
         Args:
             page (int): Page number (1-indexed), default is 1
             page_size (int): Number of items per page, default is 10
-            
+
         Returns:
             Dict: A dictionary containing pagination metadata and data
         """
