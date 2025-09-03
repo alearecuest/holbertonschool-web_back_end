@@ -1,18 +1,13 @@
 const fs = require('fs');
 
-/**
- * Counts students from a CSV database file
- * @param {string} path - Path to the CSV file
- */
-
 function countStudents(path) {
   try {
     const data = fs.readFileSync(path, 'utf8');
-    
+
     const lines = data
-			.trim()
-			.split('\n')
-			.filter((line) => line.trim() !== '');
+		.trim()
+		.split('\n')
+		.filter((line) => line.trim() !== '');
 		
 		if (lines.length <= 1) {
       console.log('Number of students: 0');
