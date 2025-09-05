@@ -10,29 +10,34 @@ async function countStudents(path) {
     const lines = data.trim().split('\n');
     const studentGroups = {};
     const dbFieldNames = lines[0].split(',');
-    const studentPropNames = dbFieldNames;
-    const studentRecords = lines.slice(1).filter((line) => line).map((line) => line.split(','));
-
-    let totalStudents = 0;
+    
+    // Filter out empty lines and parse records
+    const studentRecords = lines.slice(1)
+      .filter(line => line.trim() !== '')
+      .map(line => line.split(','));
+    
+    const totalStudents = studentRecords.length;
     const output = [];
-
+    
+    // Group students by field
     studentRecords.forEach((studentRecord) => {
-      totalStudents += 1;
-      const studentEntries = studentPropNames
+      const studentEntries = dbFieldNames
         .map((propName, idx) => [propName, studentRecord[idx]]);
       const student = Object.fromEntries(studentEntries);
-
+      
       if (!studentGroups[student.field]) {
         studentGroups[student.field] = [];
       }
       studentGroups[student.field].push(student.firstname);
     });
-
+    
     output.push(`Number of students: ${totalStudents}`);
+    
+    // Output each field group
     for (const [field, group] of Object.entries(studentGroups)) {
       output.push(`Number of students in ${field}: ${group.length}. List: ${group.join(', ')}`);
     }
-
+    
     return output;
   } catch (error) {
     throw new Error('Cannot load the database');
@@ -45,7 +50,7 @@ app.get('/', (req, res) => {
 
 app.get('/students', async (req, res) => {
   const header = 'This is the list of our students';
-
+  
   try {
     const studentInfo = await countStudents(process.argv[2] || 'database.csv');
     res.send(`${header}\n${studentInfo.join('\n')}`);
