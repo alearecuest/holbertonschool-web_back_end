@@ -11,7 +11,6 @@ async function countStudents(path) {
     const studentGroups = {};
     const dbFieldNames = lines[0].split(',');
     
-    // Filter out empty lines and parse records
     const studentRecords = lines.slice(1)
       .filter(line => line.trim() !== '')
       .map(line => line.split(','));
@@ -19,7 +18,6 @@ async function countStudents(path) {
     const totalStudents = studentRecords.length;
     const output = [];
     
-    // Group students by field
     studentRecords.forEach((studentRecord) => {
       const studentEntries = dbFieldNames
         .map((propName, idx) => [propName, studentRecord[idx]]);
@@ -33,7 +31,6 @@ async function countStudents(path) {
     
     output.push(`Number of students: ${totalStudents}`);
     
-    // Output each field group
     for (const [field, group] of Object.entries(studentGroups)) {
       output.push(`Number of students in ${field}: ${group.length}. List: ${group.join(', ')}`);
     }
