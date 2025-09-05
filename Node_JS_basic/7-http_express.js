@@ -3,54 +3,46 @@ const fs = require('fs');
 
 const app = express();
 const port = 1245;
-const dbFilename = process.argv.length > 2 ? process.argv[2] : '';
 
 function countStudents(path) {
   return new Promise((resolve, reject) => {
-    if (!path) {
-      reject(new Error('Cannot load the database'));
-      return;
-    }
-
-    fs.readFile(path, 'utf-8', (err, data) => {
+    fs.readFile(path, 'utf8', (err, data) => {
       if (err) {
         reject(new Error('Cannot load the database'));
         return;
       }
-
-      const lines = data.toString().split('\n');
-      let students = lines.filter((line) => line);
-      const header = students.shift();
-      const headerFields = header.split(',');
-      const fieldIndex = headerFields.findIndex((field) => field === 'field');
-      const firstnameIndex = headerFields.findIndex((field) => field === 'firstname');
-
-      if (fieldIndex === -1) {
-        reject(new Error('Cannot load the database'));
-        return;
-      }
-
-      const fields = {};
-      students.forEach((student) => {
-        const studentData = student.split(',');
-        const studentField = studentData[fieldIndex];
-        const studentFirstname = studentData[firstnameIndex];
-
-        if (!fields[studentField]) {
-          fields[studentField] = [];
-        }
-
-        fields[studentField].push(studentFirstname);
-      });
-
-      const response = [];
-      response.push(`Number of students: ${students.length}`);
       
-      for (const [field, names] of Object.entries(fields)) {
-        response.push(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
+      const lines = data.trim().split('\n');
+      const headers = lines[0].split(',');
+      const studentRecords = lines.slice(1).filter(line => line.trim());
+      
+      const fields = {};
+      let count = 0;
+      
+      studentRecords.forEach((record) => {
+        const values = record.split(',');
+        const student = {};
+        
+        headers.forEach((header, index) => {
+          student[header] = values[index];
+        });
+        
+        if (!fields[student.field]) {
+          fields[student.field] = [];
+        }
+        
+        fields[student.field].push(student.firstname);
+        count++;
+      });
+      
+      const result = [];
+      result.push(`Number of students: ${count}`);
+      
+      for (const [field, students] of Object.entries(fields)) {
+        result.push(`Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`);
       }
-
-      resolve(response);
+      
+      resolve(result);
     });
   });
 }
@@ -60,16 +52,14 @@ app.get('/', (req, res) => {
 });
 
 app.get('/students', (req, res) => {
-  const output = ['This is the list of our students'];
-
-  countStudents(dbFilename)
-    .then((result) => {
-      output.push(...result);
-      res.send(output.join('\n'));
+  const dbFile = process.argv[2] || '';
+  
+  countStudents(dbFile)
+    .then((studentData) => {
+      res.send(`This is the list of our students\n${studentData.join('\n')}`);
     })
     .catch((error) => {
-      output.push(error.message);
-      res.send(output.join('\n'));
+      res.send(`This is the list of our students\n${error.message}`);
     });
 });
 
