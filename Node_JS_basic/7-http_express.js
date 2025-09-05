@@ -1,62 +1,66 @@
 const express = require('express');
-const fs = require('fs').promises;
+const fs = require('fs');
 
 const app = express();
 const port = 1245;
 
-async function countStudents(path) {
-  try {
-    const data = await fs.readFile(path, 'utf8');
-    const lines = data.toString().trim().split('\n');
-    const studentGroups = {};
-    const dbFieldNames = lines[0].split(',');
-    const studentPropNames = dbFieldNames;
-    
-    const studentRecords = lines.slice(1).filter((line) => line.trim()).map((line) => line.split(','));
-    
-    if (studentRecords.length === 0) {
-      throw new Error('Cannot load the database');
-    }
-    
-    studentRecords.forEach((studentRecord) => {
-      const studentEntries = studentPropNames
-        .map((propName, idx) => [propName, studentRecord[idx]]);
-      const student = Object.fromEntries(studentEntries);
-      
-      if (!studentGroups[student.field]) {
-        studentGroups[student.field] = [];
+function countStudents(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, 'utf8', (err, data) => {
+      if (err) {
+        reject(new Error('Cannot load the database'));
+        return;
       }
-      studentGroups[student.field].push(student.firstname);
+      
+      const lines = data.toString().trim().split('\n');
+      const headers = lines[0].split(',');
+      const studentRecords = lines.slice(1).filter(line => line.trim());
+      
+      const fields = {};
+      let count = 0;
+      
+      studentRecords.forEach((record) => {
+        const values = record.split(',');
+        const student = {};
+        
+        headers.forEach((header, index) => {
+          student[header] = values[index];
+        });
+        
+        if (!fields[student.field]) {
+          fields[student.field] = [];
+        }
+        
+        fields[student.field].push(student.firstname);
+        count += 1;
+      });
+      
+      const result = [];
+      result.push(`Number of students: ${count}`);
+      
+      for (const [field, students] of Object.entries(fields)) {
+        result.push(`Number of students in ${field}: ${students.length}. List: ${students.join(', ')}`);
+      }
+      
+      resolve(result);
     });
-    
-    const totalStudents = studentRecords.length;
-    const output = [];
-    
-    output.push(`Number of students: ${totalStudents}`);
-    
-    for (const [field, group] of Object.entries(studentGroups)) {
-      output.push(`Number of students in ${field}: ${group.length}. List: ${group.join(', ')}`);
-    }
-    
-    return output;
-  } catch (error) {
-    throw new Error('Cannot load the database');
-  }
+  });
 }
 
 app.get('/', (req, res) => {
   res.send('Hello Holberton School!');
 });
 
-app.get('/students', async (req, res) => {
-  const header = 'This is the list of our students';
+app.get('/students', (req, res) => {
+  const dbFile = process.argv[2];
   
-  try {
-    const studentInfo = await countStudents(process.argv[2] || 'database.csv');
-    res.send(`${header}\n${studentInfo.join('\n')}`);
-  } catch (error) {
-    res.send(`${header}\n${error.message}`);
-  }
+  countStudents(dbFile)
+    .then((studentData) => {
+      res.send(`This is the list of our students\n${studentData.join('\n')}`);
+    })
+    .catch((error) => {
+      res.send(`This is the list of our students\n${error.message}`);
+    });
 });
 
 app.listen(port);
