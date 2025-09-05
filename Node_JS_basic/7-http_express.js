@@ -8,34 +8,39 @@ async function countStudents(path) {
   try {
     const data = await fs.readFile(path, 'utf8');
     const lines = data.trim().split('\n');
-    const studentGroups = {};
-    const dbFieldNames = lines[0].split(',');
+    const headers = lines[0].split(',');
+    const studentRecords = lines.slice(1).filter(line => line.trim());
     
-    const studentRecords = lines.slice(1)
-      .filter(line => line.trim() !== '')
-      .map(line => line.split(','));
-    
-    const totalStudents = studentRecords.length;
-    const output = [];
-    
-    studentRecords.forEach((studentRecord) => {
-      const studentEntries = dbFieldNames
-        .map((propName, idx) => [propName, studentRecord[idx]]);
-      const student = Object.fromEntries(studentEntries);
-      
-      if (!studentGroups[student.field]) {
-        studentGroups[student.field] = [];
-      }
-      studentGroups[student.field].push(student.firstname);
-    });
-    
-    output.push(`Number of students: ${totalStudents}`);
-    
-    for (const [field, group] of Object.entries(studentGroups)) {
-      output.push(`Number of students in ${field}: ${group.length}. List: ${group.join(', ')}`);
+    if (studentRecords.length === 0) {
+      throw new Error('Cannot load the database');
     }
-    
-    return output;
+
+    const students = {};
+    let count = 0;
+
+    studentRecords.forEach((record) => {
+      const fields = record.split(',');
+      const student = {};
+      
+      headers.forEach((header, index) => {
+        student[header] = fields[index];
+      });
+
+      if (!students[student.field]) {
+        students[student.field] = [];
+      }
+
+      students[student.field].push(student.firstname);
+      count += 1;
+    });
+
+    const result = [`Number of students: ${count}`];
+
+    for (const [field, names] of Object.entries(students)) {
+      result.push(`Number of students in ${field}: ${names.length}. List: ${names.join(', ')}`);
+    }
+
+    return result;
   } catch (error) {
     throw new Error('Cannot load the database');
   }
@@ -47,10 +52,10 @@ app.get('/', (req, res) => {
 
 app.get('/students', async (req, res) => {
   const header = 'This is the list of our students';
-  
+
   try {
-    const studentInfo = await countStudents(process.argv[2] || 'database.csv');
-    res.send(`${header}\n${studentInfo.join('\n')}`);
+    const studentData = await countStudents(process.argv[2] || 'database.csv');
+    res.send(`${header}\n${studentData.join('\n')}`);
   } catch (error) {
     res.send(`${header}\n${error.message}`);
   }
