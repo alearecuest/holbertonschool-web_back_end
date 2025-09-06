@@ -8,9 +8,7 @@ class StudentsController {
       .then((fields) => {
         let responseText = 'This is the list of our students\n';
 
-        const sortedFields = Object.keys(fields).sort((a, b) => 
-          a.toLowerCase().localeCompare(b.toLowerCase())
-        );
+        const sortedFields = Object.keys(fields).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
         for (const field of sortedFields) {
           const students = fields[field];
