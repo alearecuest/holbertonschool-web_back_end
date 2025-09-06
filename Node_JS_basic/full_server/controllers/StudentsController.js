@@ -9,13 +9,13 @@ class StudentsController {
         let responseText = 'This is the list of our students\n';
 
         const sortedFields = Object.keys(fields).sort(
-					(a, b) => a.toLowerCase().localeCompare(b.toLowerCase())
-				);
+          (a, b) => a.toLowerCase().localeCompare(b.toLowerCase()),
+        );
 
         for (const field of sortedFields) {
           const students = fields[field];
           responseText += `Number of students in ${field}: ${
-						students.length}. List: ${students.join(', ')}\n`;
+            students.length}. List: ${students.join(', ')}\n`;
         }
 
         response.status(200).send(responseText);
