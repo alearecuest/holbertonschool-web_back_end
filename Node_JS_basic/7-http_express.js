@@ -22,7 +22,7 @@ const countStudents = (path) => new Promise((resolve, reject) => {
     for (const student of students) {
       const studentData = student.split(',');
       const field = studentData[3];
-      
+
       if (!fields[field]) {
         fields[field] = {
           count: 0,
@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
 
 app.get('/students', (req, res) => {
   res.write('This is the list of our students\n');
-  
+
   countStudents(databaseFile)
     .then(({ totalStudents, fields }) => {
       res.write(`Number of students: ${totalStudents}\n`);
